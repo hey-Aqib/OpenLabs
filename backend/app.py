@@ -47,7 +47,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount frontend static files
+# Explicit static file route handlers
+@app.get("/static/css/style.css")
+async def serve_css():
+    return FileResponse(str(FRONTEND_DIR / "css" / "style.css"), media_type="text/css")
+
+@app.get("/static/js/app.js")
+async def serve_js():
+    return FileResponse(str(FRONTEND_DIR / "js" / "app.js"), media_type="application/javascript")
+
+# Mount frontend static files fallback
 app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 @app.get("/", include_in_schema=False)
