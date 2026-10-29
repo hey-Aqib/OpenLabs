@@ -1,12 +1,18 @@
 """
 OpenLabs Studio - Hugging Face Space Entrypoint
-Serves the Original High-Fidelity Obsidian Studio Web UI with ZeroGPU Free compatibility.
+Serves the Original High-Fidelity Obsidian Studio Web UI at root / with ZeroGPU Free compatibility.
+Disables SSR so Python handles all routes without Node.js SvelteKit proxying.
 """
 import os
-import html
+import sys
+
+# Disable Node.js Server-Side Rendering proxy so Python handles port 7860 directly
+os.environ["GRADIO_SSR_MODE"] = "False"
+
 from pathlib import Path
 import gradio as gr
 from fastapi.responses import FileResponse
+from fastapi.routing import APIRoute
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app import app as backend_app
 
@@ -31,39 +37,14 @@ else:
     def zero_gpu_pipeline(x: str = "") -> str:
         return x
 
-# Read the inlined Obsidian Studio HTML
-raw_html = FRONTEND_INDEX.read_text(encoding="utf-8")
-escaped_html = html.escape(raw_html)
-
-# 2. Build Gradio Blocks that hosts the Original Obsidian Studio in 100% Fullscreen
-custom_css = """
-body, html, .gradio-container, gradio-app {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    overflow: hidden !important;
-    background-color: #080c14 !important;
-}
-footer { display: none !important; }
-.contain { padding: 0 !important; }
-"""
-
-with gr.Blocks(title="OpenLabs Studio — High-Fidelity Voice Synthesis") as demo:
-    # ZeroGPU hook component (hidden)
+# 2. Minimal Gradio Blocks to satisfy Hugging Face Space SDK & ZeroGPU Scanner
+with gr.Blocks(title="OpenLabs Studio") as demo:
     hidden_in = gr.Textbox(visible=False)
     hidden_out = gr.Textbox(visible=False)
     hidden_btn = gr.Button(visible=False)
     hidden_btn.click(fn=zero_gpu_pipeline, inputs=[hidden_in], outputs=[hidden_out])
 
-    # Fullscreen Original Obsidian Studio UI
-    gr.HTML(f"""
-    <style>{custom_css}</style>
-    <iframe src="/studio" srcdoc="{escaped_html}" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; border: none; z-index: 9999999; margin: 0; padding: 0; background-color: #080c14;"></iframe>
-    """)
-
-# 3. Mount Backend Routes directly onto demo.app under /gradio_api and /
+# 3. Attach CORS middleware
 demo.app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -72,21 +53,34 @@ demo.app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount backend_app at /gradio_api so Node SSR proxy passes all API calls straight to FastAPI
-demo.app.mount("/gradio_api", backend_app)
+# 4. Route Handlers: Serve the original Obsidian Studio UI directly at root /
+root_route = APIRoute(
+    "/",
+    lambda: FileResponse(str(FRONTEND_INDEX), media_type="text/html"),
+    methods=["GET"]
+)
+studio_route = APIRoute(
+    "/studio",
+    lambda: FileResponse(str(FRONTEND_INDEX), media_type="text/html"),
+    methods=["GET"]
+)
+css_route = APIRoute(
+    "/static/css/style.css",
+    lambda: FileResponse(str(CSS_PATH), media_type="text/css"),
+    methods=["GET"]
+)
+js_route = APIRoute(
+    "/static/js/app.js",
+    lambda: FileResponse(str(JS_PATH), media_type="application/javascript"),
+    methods=["GET"]
+)
 
-# Explicit fallback routes
-@demo.app.get("/studio")
-async def serve_studio():
-    return FileResponse(str(FRONTEND_INDEX), media_type="text/html")
+# Insert custom routes at index 0 in reverse order so they take top priority over Gradio's internal catch-all
+v1_routes = [r for r in backend_app.routes if hasattr(r, 'path') and r.path.startswith('/v1')]
+priority_routes = [root_route, studio_route, css_route, js_route] + v1_routes
 
-@demo.app.get("/static/css/style.css")
-async def serve_css():
-    return FileResponse(str(CSS_PATH), media_type="text/css")
-
-@demo.app.get("/static/js/app.js")
-async def serve_js():
-    return FileResponse(str(JS_PATH), media_type="application/javascript")
+for route in reversed(priority_routes):
+    demo.app.routes.insert(0, route)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(ssr_mode=False)

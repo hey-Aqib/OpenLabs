@@ -1,4 +1,4 @@
-const API_BASE = window.location.host.includes("hf.space") || window.location.pathname.includes("gradio") ? "/gradio_api" : "";
+const API_BASE = "";
 /**
  * OpenLabs Studio - Voice Synthesis & Cloning Controller
  * Manages Voice Selection, Sliders, Web Audio Canvas Visualizer,
