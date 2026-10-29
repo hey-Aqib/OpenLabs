@@ -955,31 +955,55 @@ function setupNavigation() {
 // ========================================================
 // 2. VOICES LOADING & SELECTION
 // ========================================================
+const FALLBACK_VOICES = [
+  { voice_id: "21m00Tcm4TlvDq8ikWAM", name: "Rachel", category: "premade", labels: { gender: "female", accent: "american", age: "young", use_case: "narration" }, description: "Calm, natural female voice" },
+  { voice_id: "AZnzlk1XvdvUeBnXmlld", name: "Domi", category: "premade", labels: { gender: "female", accent: "american", age: "young", use_case: "conversational" }, description: "Strong, authentic female voice" },
+  { voice_id: "EXAVITQu4vr4xnSDxMaL", name: "Bella", category: "premade", labels: { gender: "female", accent: "american", age: "young", use_case: "narration" }, description: "Gentle, pleasant female voice" },
+  { voice_id: "ErXwobaYiN019PkySvjV", name: "Antoni", category: "premade", labels: { gender: "male", accent: "american", age: "young", use_case: "narration" }, description: "Well-rounded, versatile male voice" },
+  { voice_id: "MF3mGyEYCl7XYWbV9V6O", name: "Josh", category: "premade", labels: { gender: "male", accent: "american", age: "young", use_case: "narration" }, description: "Deep, soothing male voice" },
+  { voice_id: "VR6AewLTigWG4xSOukaG", name: "Arnold", category: "premade", labels: { gender: "male", accent: "american", age: "middle_aged", use_case: "narration" }, description: "Crisp, authoritative male voice" },
+  { voice_id: "pNInz6obpgDQGcFmaJgB", name: "Adam", category: "premade", labels: { gender: "male", accent: "american", age: "middle_aged", use_case: "narration" }, description: "Deep, resonant male voice" },
+  { voice_id: "yoZ06aMxZJJ28mfd3POQ", name: "Sam", category: "premade", labels: { gender: "male", accent: "american", age: "young", use_case: "narration" }, description: "Dynamic, versatile male voice" }
+];
+
 async function loadVoices() {
   try {
     const res = await fetch(`${API_BASE}/v1/voices`);
-    const data = await res.json();
-    state.voices = data.voices || [];
+    const ct = res.headers.get("content-type") || "";
+    if (res.ok && ct.includes("application/json")) {
+      const data = await res.json();
+      if (data && data.voices && data.voices.length > 0) {
+        state.voices = data.voices;
+      }
+    }
+  } catch (err) {
+    console.warn("API voice fetch deferred, using built-in voices:", err);
+  }
 
-    const select = document.getElementById("voice-select");
+  if (!state.voices || state.voices.length === 0) {
+    state.voices = [...FALLBACK_VOICES];
+  }
+
+  const select = document.getElementById("voice-select");
+  if (select) {
     select.innerHTML = "";
-
     state.voices.forEach(v => {
       const opt = document.createElement("option");
       opt.value = v.voice_id;
       const categoryTag = v.category === "cloned" ? " [CLONED]" : "";
-      opt.textContent = `${v.name} (${v.labels.accent || "Standard"}, ${v.labels.gender || "Voice"})${categoryTag}`;
+      opt.textContent = `${v.name} (${v.labels?.accent || "Standard"}, ${v.labels?.gender || "Voice"})${categoryTag}`;
       select.appendChild(opt);
     });
+  }
 
-    if (state.voices.length > 0) {
-      selectVoice(state.selectedVoiceId);
-    }
+  if (state.voices.length > 0) {
+    selectVoice(state.selectedVoiceId || state.voices[0].voice_id);
+  }
+  if (typeof renderVoiceGrid === "function") {
     renderVoiceGrid("all");
-  } catch (err) {
-    showToast("Failed to load voices: " + err.message, "error");
   }
 }
+
 
 function selectVoice(voiceId) {
   const voice = state.voices.find(v => v.voice_id === voiceId) || state.voices[0];
