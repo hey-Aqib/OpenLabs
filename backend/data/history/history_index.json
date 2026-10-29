@@ -1,0 +1,44 @@
+[
+  {
+    "history_item_id": "hist_2c65a2422b4748f1",
+    "request_id": "req_056fa712b264",
+    "voice_id": "21m00Tcm4TlvDq8ikWAM",
+    "model_id": "openlabs_multilingual_v2",
+    "voice_name": "Rachel",
+    "voice_category": "premade",
+    "text": "Hello world, this is a test of the speech synthesis engine.",
+    "date_unix": 1793298827,
+    "character_count_change_from": 100000,
+    "character_count_change_to": 99941,
+    "content_type": "audio/mpeg",
+    "state": "created",
+    "settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "style": 0.05,
+      "use_speaker_boost": true
+    },
+    "duration_seconds": 4.334
+  },
+  {
+    "history_item_id": "hist_538d73f51cb44a2d",
+    "request_id": "req_bd64f5dd5238",
+    "voice_id": "21m00Tcm4TlvDq8ikWAM",
+    "model_id": "eleven_multilingual_v2",
+    "voice_name": "Rachel",
+    "voice_category": "premade",
+    "text": "Hello world, this is a test of the speech synthesis engine.",
+    "date_unix": 1793296606,
+    "character_count_change_from": 100000,
+    "character_count_change_to": 99941,
+    "content_type": "audio/mpeg",
+    "state": "created",
+    "settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "style": 0.05,
+      "use_speaker_boost": true
+    },
+    "duration_seconds": 4.334
+  }
+]

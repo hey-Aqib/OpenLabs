@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenLabs Studio — High-Fidelity Voice Generation & Cloning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            slate: {
+              850: '#131b2e',
+              900: '#0f172a',
+              950: '#080c14',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation Header -->
+  <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-sky-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <i data-lucide="audio-lines" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">OpenLabs</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">Neural Voice Engine</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1 rounded-xl">
+      <button class="nav-tab active flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all" data-tab="tab-synthesis">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        <span>Speech Synthesis</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200" data-tab="tab-voicelab">
+        <i data-lucide="dna" class="w-4 h-4"></i>
+        <span>Voice Lab & Cloning</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200" data-tab="tab-library">
+        <i data-lucide="library" class="w-4 h-4"></i>
+        <span>Voice Library</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200" data-tab="tab-history">
+        <i data-lucide="history" class="w-4 h-4"></i>
+        <span>History</span>
+      </button>
+      <button class="nav-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200" data-tab="tab-api">
+        <i data-lucide="code-2" class="w-4 h-4"></i>
+        <span>API Docs</span>
+      </button>
+    </nav>
+
+    <!-- Right Header Badges -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Local Neural Engine Ready</span>
+      </div>
+      <a href="/docs" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors flex items-center gap-1.5">
+        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        <span>Swagger UI</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6">
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: SPEECH SYNTHESIS (PLAYGROUND) -->
+    <!-- ======================================================== -->
+    <section id="tab-synthesis" class="tab-panel active">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left/Center Column: Text Input & Alignment Display -->
+        <div class="lg:col-span-8 flex flex-col gap-4">
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col flex-1 relative min-h-[380px]">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800/60 mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs uppercase font-semibold tracking-wider text-slate-400">Prompt / Script</span>
+                <span id="char-counter" class="text-xs text-slate-500 font-mono">0 / 5,000 characters</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <select id="preset-prompts" class="bg-slate-800/80 border border-slate-700 text-xs rounded-lg px-2.5 py-1 text-slate-300 hover:border-slate-600 focus:outline-none">
+                  <option value="">Sample Scripts...</option>
+                  <option value="narration">Audiobook Narration</option>
+                  <option value="conversational">Conversational AI</option>
+                  <option value="trailer">Movie Trailer Announcement</option>
+                  <option value="asmr">Calm Meditation / ASMR</option>
+                </select>
+                <button id="clear-text-btn" class="text-xs text-slate-400 hover:text-slate-200 transition-colors px-2 py-1">Clear</button>
+              </div>
+            </div>
+
+            <!-- Text Area -->
+            <textarea id="tts-input-text" class="w-full flex-1 bg-transparent resize-none border-0 text-slate-100 text-base leading-relaxed placeholder-slate-600 focus:outline-none focus:ring-0 font-normal" placeholder="Start typing or paste your text here to synthesize with natural human prosody..."></textarea>
+
+            <!-- Synchronized Word Karaoke / Alignment View -->
+            <div id="karaoke-container" class="mt-4 pt-3 border-t border-slate-800/60 hidden">
+              <div class="text-xs uppercase font-semibold text-slate-500 mb-1.5 flex items-center gap-1.5">
+                <i data-lucide="captions" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span>Word-Level Alignment & Timing</span>
+              </div>
+              <div id="karaoke-words" class="flex flex-wrap gap-1.5 text-sm py-2 px-3 bg-slate-950/60 rounded-xl border border-slate-800/80 min-h-[48px] items-center">
+                <span class="text-slate-500 italic text-xs">Generated word alignment will highlight here during audio playback.</span>
+              </div>
+            </div>
+
+            <!-- Bottom Text Bar Info -->
+            <div class="flex items-center justify-between pt-3 mt-auto text-xs text-slate-500">
+              <div class="flex items-center gap-4">
+                <span id="word-count">0 words</span>
+                <span id="est-duration">Estimated: ~0.0s</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input type="checkbox" id="stream-toggle" class="sr-only peer">
+                  <div class="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600 relative"></div>
+                  <span class="text-slate-400 text-xs">Streaming Mode (Low Latency)</span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Audio Player & Waveform Visualizer -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
+            
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <button id="play-pause-btn" disabled class="w-11 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white flex items-center justify-center transition-all shadow-lg shadow-indigo-600/30">
+                  <i data-lucide="play" id="play-icon" class="w-5 h-5 ml-0.5"></i>
+                </button>
+                <div>
+                  <div id="player-status-title" class="text-sm font-semibold text-slate-200">No Audio Generated</div>
+                  <div class="text-xs text-slate-500 flex items-center gap-2 font-mono">
+                    <span id="time-current">00:00</span>
+                    <span>/</span>
+                    <span id="time-total">00:00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Speed & Action Buttons -->
+              <div class="flex items-center gap-2">
+                <div class="flex items-center bg-slate-800/90 rounded-lg p-0.5 border border-slate-700 text-xs">
+                  <button class="speed-btn px-2 py-1 rounded text-slate-400 hover:text-white" data-speed="0.75">0.75x</button>
+                  <button class="speed-btn active px-2 py-1 rounded text-white bg-indigo-600" data-speed="1.0">1.0x</button>
+                  <button class="speed-btn px-2 py-1 rounded text-slate-400 hover:text-white" data-speed="1.25">1.25x</button>
+                  <button class="speed-btn px-2 py-1 rounded text-slate-400 hover:text-white" data-speed="1.5">1.5x</button>
+                </div>
+
+                <button id="download-mp3-btn" disabled class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-300 transition-colors" title="Download MP3">
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Waveform Canvas & Scrubber -->
+            <div class="relative w-full h-16 bg-slate-950/80 rounded-xl border border-slate-800/80 overflow-hidden cursor-pointer" id="waveform-wrapper">
+              <canvas id="waveform-canvas" class="w-full h-full"></canvas>
+              <div id="playhead-line" class="absolute top-0 bottom-0 w-0.5 bg-indigo-400 pointer-events-none hidden" style="left: 0%;"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right Column: Voice Selector, Model & Voice Settings Sliders -->
+        <div class="lg:col-span-4 flex flex-col gap-5">
+
+          <!-- Voice Selector Card -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs uppercase font-semibold tracking-wider text-slate-400">Voice Selection</span>
+              <button id="preview-voice-btn" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+                <span>Preview</span>
+              </button>
+            </div>
+
+            <!-- Selected Voice Preview Card -->
+            <div id="selected-voice-card" class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/60">
+              <div id="voice-avatar" class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white text-sm shadow-md">
+                R
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <h4 id="voice-display-name" class="font-semibold text-sm text-slate-100 truncate">Rachel</h4>
+                  <span id="voice-category-badge" class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300">premade</span>
+                </div>
+                <p id="voice-display-desc" class="text-xs text-slate-400 truncate">Calm, warm American female</p>
+              </div>
+            </div>
+
+            <!-- Voice Dropdown Picker -->
+            <select id="voice-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+              <!-- Dynamically populated -->
+            </select>
+
+            <!-- Model Selection -->
+            <div>
+              <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Acoustic Model</label>
+              <select id="model-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="openlabs_multilingual_v2" selected>OpenLabs Multilingual v2 (Rich Prosody)</option>
+                <option value="openlabs_flash_v2_5">OpenLabs Flash v2.5 (~75ms Ultra Fast)</option>
+                <option value="openlabs_turbo_v2">OpenLabs Turbo v2 (Fast English)</option>
+                <option value="openlabs_neural_v1">OpenLabs Neural v1 (Offline SAPI5 Engine)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Voice Settings Sliders (4 Acoustic Controls) -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
+              <span class="text-xs uppercase font-semibold tracking-wider text-slate-400">Voice Settings</span>
+              <button id="reset-sliders-btn" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">Default</button>
+            </div>
+
+            <!-- 1. Stability Slider -->
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-medium text-slate-300">Stability</span>
+                <span id="stability-val" class="text-slate-400 font-mono">0.50</span>
+              </div>
+              <input type="range" id="slider-stability" min="0" max="1" step="0.05" value="0.50" class="slider-control">
+              <div class="flex justify-between text-[10px] text-slate-500">
+                <span>More variable</span>
+                <span>More stable</span>
+              </div>
+            </div>
+
+            <!-- 2. Similarity / Clarity Slider -->
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-medium text-slate-300">Similarity / Clarity</span>
+                <span id="similarity-val" class="text-slate-400 font-mono">0.75</span>
+              </div>
+              <input type="range" id="slider-similarity" min="0" max="1" step="0.05" value="0.75" class="slider-control">
+              <div class="flex justify-between text-[10px] text-slate-500">
+                <span>Low</span>
+                <span>High</span>
+              </div>
+            </div>
+
+            <!-- 3. Style Exaggeration Slider -->
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-medium text-slate-300">Style Exaggeration</span>
+                <span id="style-val" class="text-slate-400 font-mono">0.05</span>
+              </div>
+              <input type="range" id="slider-style" min="0" max="1" step="0.05" value="0.05" class="slider-control">
+              <div class="flex justify-between text-[10px] text-slate-500">
+                <span>None</span>
+                <span>Exaggerated</span>
+              </div>
+            </div>
+
+            <!-- 4. Speaker Boost Toggle -->
+            <div class="flex items-center justify-between pt-1">
+              <div>
+                <span class="text-xs font-medium text-slate-300 block">Speaker Boost</span>
+                <span class="text-[10px] text-slate-500 block">Enhances voice presence & warmth</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-speaker-boost" checked class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+              </label>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="generate-btn" class="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 hover:from-indigo-500 hover:to-violet-600 text-white font-semibold text-sm shadow-xl shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span id="generate-btn-text">Generate Speech</span>
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: VOICE LAB & CLONING -->
+    <!-- ======================================================== -->
+    <section id="tab-voicelab" class="tab-panel hidden">
+      <div class="max-w-4xl mx-auto flex flex-col gap-8">
+        
+        <div class="text-center">
+          <h2 class="text-2xl font-bold tracking-tight text-white">Voice Lab</h2>
+          <p class="text-sm text-slate-400 mt-1">Clone any voice instantly from reference audio or live microphone, or design novel synthetic voices.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Card 1: Instant Voice Cloning (IVC) -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
+              <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center">
+                <i data-lucide="mic" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-base text-slate-100">Instant Voice Cloning</h3>
+                <p class="text-xs text-slate-400">Upload sample or record directly</p>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <div>
+                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1">Voice Name</label>
+                <input type="text" id="clone-name" placeholder="e.g. Michael - Podcast Voice" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1">Description / Notes</label>
+                <input type="text" id="clone-desc" placeholder="Warm, deep voice recorded via studio mic" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+              </div>
+
+              <!-- Audio Ingestion: Upload File or Mic Record -->
+              <div class="mt-1 flex flex-col gap-2">
+                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Audio Reference Sample</label>
+
+                <!-- Drag & drop upload area -->
+                <div id="drop-area" class="border-2 border-dashed border-slate-700 hover:border-indigo-500/60 rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-800/30">
+                  <i data-lucide="upload-cloud" class="w-8 h-8 mx-auto text-slate-400 mb-2"></i>
+                  <p class="text-xs text-slate-300 font-medium">Click to select audio file or drag & drop</p>
+                  <p class="text-[10px] text-slate-500 mt-1">MP3, WAV, OGG, M4A (1-5 mins recommended)</p>
+                  <input type="file" id="clone-file-input" accept="audio/*" class="hidden">
+                  <div id="file-chosen-name" class="text-xs text-indigo-400 mt-2 font-medium hidden"></div>
+                </div>
+
+                <!-- Live Mic Recording Option -->
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-slate-700">
+                  <div class="flex items-center gap-2">
+                    <span id="mic-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                    <span id="mic-status-text" class="text-xs text-slate-400">Record from Microphone</span>
+                  </div>
+                  <button id="mic-toggle-btn" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors flex items-center gap-1.5">
+                    <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+                    <span id="mic-btn-label">Start Recording</span>
+                  </button>
+                </div>
+              </div>
+
+              <button id="create-clone-btn" class="w-full mt-3 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>Clone Voice Profile</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 2: Voice Design -->
+          <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
+              <div class="w-9 h-9 rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20 flex items-center justify-center">
+                <i data-lucide="sliders" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-base text-slate-100">Voice Design</h3>
+                <p class="text-xs text-slate-400">Synthesize parametric voice profiles</p>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <div>
+                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1">Voice Name</label>
+                <input type="text" id="design-name" placeholder="e.g. Victorian Detective" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1">Gender</label>
+                  <select id="design-gender" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200">
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1">Age</label>
+                  <select id="design-age" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200">
+                    <option value="young">Young</option>
+                    <option value="middle-aged" selected>Middle-Aged</option>
+                    <option value="old">Old</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1">Accent</label>
+                <select id="design-accent" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-200">
+                  <option value="american" selected>American</option>
+                  <option value="british">British</option>
+                  <option value="australian">Australian</option>
+                  <option value="irish">Irish</option>
+                  <option value="indian">Indian</option>
+                  <option value="scottish">Scottish</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="text-slate-300 font-medium">Accent Strength</span>
+                  <span id="accent-strength-val" class="text-slate-400 font-mono">1.0x</span>
+                </div>
+                <input type="range" id="design-accent-strength" min="0.3" max="2.0" step="0.1" value="1.0" class="slider-control">
+              </div>
+
+              <button id="create-design-btn" class="w-full mt-3 py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2 transition-all">
+                <i data-lucide="wand-2" class="w-4 h-4"></i>
+                <span>Generate Designed Voice</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: VOICE LIBRARY -->
+    <!-- ======================================================== -->
+    <section id="tab-library" class="tab-panel hidden">
+      <div class="flex flex-col gap-6">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-white">Voice Library</h2>
+            <p class="text-sm text-slate-400">Browse premade flagship voices and your custom cloned profiles.</p>
+          </div>
+
+          <!-- Category filter buttons -->
+          <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 p-1 rounded-xl">
+            <button class="lib-filter active px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-indigo-600" data-filter="all">All</button>
+            <button class="lib-filter px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white" data-filter="premade">Premade</button>
+            <button class="lib-filter px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white" data-filter="cloned">Cloned</button>
+            <button class="lib-filter px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white" data-filter="female">Female</button>
+            <button class="lib-filter px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white" data-filter="male">Male</button>
+          </div>
+        </div>
+
+        <!-- Voice Grid -->
+        <div id="voice-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 4: GENERATION HISTORY -->
+    <!-- ======================================================== -->
+    <section id="tab-history" class="tab-panel hidden">
+      <div class="flex flex-col gap-6">
+        
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-white">Generation History</h2>
+            <p class="text-sm text-slate-400">All historical speech synthesis files and parameter settings.</p>
+          </div>
+          <button id="refresh-history-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <div id="history-container" class="flex flex-col gap-3">
+          <!-- Dynamically populated -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 5: API DOCUMENTATION & LIVE CONSOLE -->
+    <!-- ======================================================== -->
+    <section id="tab-api" class="tab-panel hidden">
+      <div class="max-w-4xl mx-auto flex flex-col gap-6">
+        
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">OpenLabs v1 REST & WebSocket API</h2>
+          <p class="text-sm text-slate-400 mt-1">High-performance voice synthesis, instant cloning, and real-time streaming endpoint contracts.</p>
+        </div>
+
+        <!-- Code Snippet Box -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 bg-slate-950/60">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+              <span class="text-xs text-slate-400 font-mono ml-2">Text-to-Speech API (Python SDK / cURL)</span>
+            </div>
+            <button id="copy-code-btn" class="text-xs text-slate-400 hover:text-white flex items-center gap-1">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>Copy</span>
+            </button>
+          </div>
+
+          <pre class="p-5 text-xs font-mono text-slate-300 overflow-x-auto leading-relaxed"><code># Python Example using requests
+import requests
+
+url = "http://localhost:8000/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM"
+
+payload = {
+    "text": "Hello from OpenLabs independent speech engine!",
+    "model_id": "openlabs_multilingual_v2",
+    "voice_settings": {
+        "stability": 0.50,
+        "similarity_boost": 0.75,
+        "style": 0.05,
+        "use_speaker_boost": True
+    }
+}
+
+response = requests.post(url, json=payload)
+with open("output.mp3", "wb") as f:
+    f.write(response.content)
+
+print("Audio saved successfully!")</code></pre>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Audio preview hidden element -->
+  <audio id="audio-player" class="hidden"></audio>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-sm shadow-2xl text-slate-100 flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <i data-lucide="check-circle" id="toast-icon" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toast-msg">Success</span>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
+

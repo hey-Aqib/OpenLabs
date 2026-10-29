@@ -1,0 +1,32 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Testing cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Binary models & large weights
+*.bin
+*.onnx
+
+# Dynamic audio files in history and temp
+backend/data/history/*.mp3
+backend/data/history/*.wav
+backend/data/voices/*.wav
+backend/data/voices/*.mp3
+backend/data/voices/*.ogg
+
+# OS generated
+.DS_Store
+Thumbs.db
