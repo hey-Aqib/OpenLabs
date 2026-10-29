@@ -1,3 +1,14 @@
+---
+title: OpenLabs
+emoji: 🎙️
+colorFrom: indigo
+colorTo: violet
+sdk: gradio
+app_file: app.py
+pinned: false
+license: apache-2.0
+---
+
 # OpenLabs — High-Fidelity Voice Synthesis & Cloning Engine
 
 OpenLabs is an independent, full-stack voice generation platform and developer API providing human-like prosody, zero-shot instant voice cloning, and low-latency audio streaming.

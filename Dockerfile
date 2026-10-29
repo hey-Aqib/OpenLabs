@@ -22,3 +22,4 @@ EXPOSE 7860
 
 # Start Uvicorn serving both the OpenLabs Studio UI and the v1 API
 CMD ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "7860"]
+
