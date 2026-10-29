@@ -1,27 +1,34 @@
 """
-OpenLabs Studio - Hugging Face Spaces & Standalone Entrypoint
-Mounts the OpenLabs FastAPI application and Gradio interface for 100% free hosting.
+OpenLabs Studio - Hugging Face Gradio Space Entrypoint
+Mounts the OpenLabs Speech Engine and serves the full Studio UI.
 """
 import os
-import uvicorn
+import gradio as gr
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from backend.app import app
 
+# Ensure frontend static directory is mounted
 try:
-    import gradio as gr
-    
-    with gr.Blocks(title="OpenLabs Studio") as demo:
-        gr.HTML("""
-        <div style="text-align: center; padding: 40px; font-family: sans-serif;">
-            <h1 style="color: #6366f1;">🎙️ OpenLabs Studio is Running!</h1>
-            <p>The high-fidelity voice synthesis studio is active.</p>
-            <a href="/" target="_blank" style="display: inline-block; padding: 12px 24px; background: #4f46e5; color: white; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">Launch Full Studio UI</a>
-        </div>
-        """)
-        
-    app = gr.mount_gradio_app(app, demo, path="/gradio")
-except Exception as e:
-    print(f"Gradio mounting notice: {e}")
+    app.mount("/static", StaticFiles(directory="frontend"), name="static")
+except Exception:
+    pass
+
+@app.get("/studio")
+async def serve_studio_ui():
+    return FileResponse("frontend/index.html")
+
+# Create a clean fullscreen Gradio wrapper embedding our Studio UI
+with gr.Blocks(title="OpenLabs Studio", css="""
+    body, .gradio-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; background-color: #080c14 !important; }
+    footer { display: none !important; }
+""") as demo:
+    gr.HTML("""
+    <iframe src="/studio" style="width: 100vw; height: 100vh; border: none; margin: 0; padding: 0; display: block;"></iframe>
+    """)
+
+# Mount Gradio onto the existing FastAPI application
+app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    demo.launch()
