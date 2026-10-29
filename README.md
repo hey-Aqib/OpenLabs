@@ -2,7 +2,7 @@
 title: OpenLabs
 emoji: 🎙️
 colorFrom: indigo
-colorTo: violet
+colorTo: purple
 sdk: gradio
 app_file: app.py
 pinned: false
