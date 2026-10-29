@@ -13,7 +13,6 @@ os.environ["GRADIO_SSR_MODE"] = "False"
 import gradio as gr
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRoute
-from fastapi.middleware.cors import CORSMiddleware
 from backend.app import app as backend_app
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -47,16 +46,7 @@ with gr.Blocks(title="OpenLabs Studio") as demo:
 # 3. Launch Gradio without thread lock so we can attach custom routes to the live FastAPI app
 demo.launch(prevent_thread_lock=True, ssr_mode=False)
 
-# 4. Attach CORS middleware
-demo.app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# 5. Route Handlers: Serve the original Obsidian Studio UI directly at root /
+# 4. Route Handlers: Serve the original Obsidian Studio UI directly at root /
 root_route = APIRoute(
     "/",
     lambda: FileResponse(str(FRONTEND_INDEX), media_type="text/html"),
