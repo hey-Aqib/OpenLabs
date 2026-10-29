@@ -5,11 +5,11 @@ Disables SSR so Python handles all routes without Node.js SvelteKit proxying.
 """
 import os
 import sys
+from pathlib import Path
 
 # Disable Node.js Server-Side Rendering proxy so Python handles port 7860 directly
 os.environ["GRADIO_SSR_MODE"] = "False"
 
-from pathlib import Path
 import gradio as gr
 from fastapi.responses import FileResponse
 from fastapi.routing import APIRoute
@@ -44,7 +44,10 @@ with gr.Blocks(title="OpenLabs Studio") as demo:
     hidden_btn = gr.Button(visible=False)
     hidden_btn.click(fn=zero_gpu_pipeline, inputs=[hidden_in], outputs=[hidden_out])
 
-# 3. Attach CORS middleware
+# 3. Launch Gradio without thread lock so we can attach custom routes to the live FastAPI app
+demo.launch(prevent_thread_lock=True, ssr_mode=False)
+
+# 4. Attach CORS middleware
 demo.app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -53,7 +56,7 @@ demo.app.add_middleware(
     allow_headers=["*"],
 )
 
-# 4. Route Handlers: Serve the original Obsidian Studio UI directly at root /
+# 5. Route Handlers: Serve the original Obsidian Studio UI directly at root /
 root_route = APIRoute(
     "/",
     lambda: FileResponse(str(FRONTEND_INDEX), media_type="text/html"),
@@ -82,5 +85,5 @@ priority_routes = [root_route, studio_route, css_route, js_route] + v1_routes
 for route in reversed(priority_routes):
     demo.app.routes.insert(0, route)
 
-if __name__ == "__main__":
-    demo.launch(ssr_mode=False)
+# Keep the server thread active for incoming requests
+demo.block_thread()
