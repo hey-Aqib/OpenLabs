@@ -7,7 +7,6 @@ import html
 from pathlib import Path
 import gradio as gr
 from fastapi.responses import FileResponse
-from fastapi.routing import APIRoute
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app import app as backend_app
 
@@ -64,7 +63,7 @@ with gr.Blocks(title="OpenLabs Studio — High-Fidelity Voice Synthesis") as dem
     <iframe src="/studio" srcdoc="{escaped_html}" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; border: none; z-index: 9999999; margin: 0; padding: 0; background-color: #080c14;"></iframe>
     """)
 
-# 3. Mount Backend Routes directly at the TOP of demo.app.routes
+# 3. Mount Backend Routes directly onto demo.app under /gradio_api and /
 demo.app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -73,28 +72,21 @@ demo.app.add_middleware(
     allow_headers=["*"],
 )
 
-studio_route = APIRoute(
-    "/studio",
-    lambda: FileResponse(str(FRONTEND_INDEX), media_type="text/html"),
-    methods=["GET"]
-)
-css_route = APIRoute(
-    "/static/css/style.css",
-    lambda: FileResponse(str(CSS_PATH), media_type="text/css"),
-    methods=["GET"]
-)
-js_route = APIRoute(
-    "/static/js/app.js",
-    lambda: FileResponse(str(JS_PATH), media_type="application/javascript"),
-    methods=["GET"]
-)
+# Mount backend_app at /gradio_api so Node SSR proxy passes all API calls straight to FastAPI
+demo.app.mount("/gradio_api", backend_app)
 
-# Insert custom routes at index 0 in reverse order so they appear in correct priority
-v1_routes = [r for r in backend_app.routes if hasattr(r, 'path') and r.path.startswith('/v1')]
-priority_routes = [studio_route, css_route, js_route] + v1_routes
+# Explicit fallback routes
+@demo.app.get("/studio")
+async def serve_studio():
+    return FileResponse(str(FRONTEND_INDEX), media_type="text/html")
 
-for route in reversed(priority_routes):
-    demo.app.routes.insert(0, route)
+@demo.app.get("/static/css/style.css")
+async def serve_css():
+    return FileResponse(str(CSS_PATH), media_type="text/css")
+
+@demo.app.get("/static/js/app.js")
+async def serve_js():
+    return FileResponse(str(JS_PATH), media_type="application/javascript")
 
 if __name__ == "__main__":
     demo.launch()

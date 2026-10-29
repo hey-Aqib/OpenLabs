@@ -1,3 +1,4 @@
+const API_BASE = window.location.host.includes("hf.space") || window.location.pathname.includes("gradio") ? "/gradio_api" : "";
 /**
  * OpenLabs Studio - Voice Synthesis & Cloning Controller
  * Manages Voice Selection, Sliders, Web Audio Canvas Visualizer,
@@ -92,7 +93,7 @@ function setupNavigation() {
 // ========================================================
 async function loadVoices() {
   try {
-    const res = await fetch("/v1/voices");
+    const res = await fetch(`${API_BASE}/v1/voices`);
     const data = await res.json();
     state.voices = data.voices || [];
 
@@ -154,7 +155,7 @@ document.getElementById("preview-voice-btn")?.addEventListener("click", () => {
 async function playVoicePreview(voiceId) {
   try {
     const audio = state.audioElement;
-    audio.src = `/v1/voices/${voiceId}/preview`;
+    audio.src = `${API_BASE}/v1/voices/${voiceId}/preview`;
     await audio.play();
     state.isPlaying = true;
     updatePlayButtonState();
@@ -287,7 +288,7 @@ async function generateSpeech() {
 }
 
 async function handleTimestampedSynthesis(text, modelId, settings) {
-  const url = `/v1/text-to-speech/${state.selectedVoiceId}/with-timestamps?output_format=mp3_44100_128`;
+  const url = `${API_BASE}/v1/text-to-speech/${state.selectedVoiceId}/with-timestamps?output_format=mp3_44100_128`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -313,7 +314,7 @@ async function handleTimestampedSynthesis(text, modelId, settings) {
 }
 
 async function handleStreamingSynthesis(text, modelId, settings) {
-  const url = `/v1/text-to-speech/${state.selectedVoiceId}/stream?output_format=mp3_44100_128`;
+  const url = `${API_BASE}/v1/text-to-speech/${state.selectedVoiceId}/stream?output_format=mp3_44100_128`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -688,7 +689,7 @@ function setupVoiceLab() {
     showToast("Analyzing voice profile and extracting acoustic timbres...", "info");
 
     try {
-      const res = await fetch("/v1/voices/add", {
+      const res = await fetch(`${API_BASE}/v1/voices/add`, {
         method: "POST",
         body: formData
       });
@@ -716,7 +717,7 @@ function setupVoiceLab() {
 
     try {
       showToast("Generating synthetic voice profile...", "info");
-      const res = await fetch("/v1/voices/design", {
+      const res = await fetch(`${API_BASE}/v1/voices/design`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -838,7 +839,7 @@ async function loadHistory() {
   if (!container) return;
 
   try {
-    const res = await fetch("/v1/history");
+    const res = await fetch(`${API_BASE}/v1/history`);
     const data = await res.json();
     const history = data.history || [];
 
@@ -876,7 +877,7 @@ async function loadHistory() {
         </div>
 
         <div class="flex items-center gap-2 flex-shrink-0">
-          <a href="/v1/history/${item.history_item_id}/audio" download="generation_${item.history_item_id}.mp3" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Download Audio">
+          <a href="${API_BASE}/v1/history/${item.history_item_id}/audio" download="generation_${item.history_item_id}.mp3" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Download Audio">
             <i data-lucide="download" class="w-4 h-4"></i>
           </a>
           <button class="hist-delete-btn p-2 rounded-lg bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" data-hist-id="${item.history_item_id}" title="Delete">
@@ -894,7 +895,7 @@ async function loadHistory() {
     container.querySelectorAll(".hist-play-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const histId = btn.getAttribute("data-hist-id");
-        state.audioElement.src = `/v1/history/${histId}/audio`;
+        state.audioElement.src = `${API_BASE}/v1/history/${histId}/audio`;
         state.audioElement.play();
         state.isPlaying = true;
         updatePlayButtonState();
@@ -904,7 +905,7 @@ async function loadHistory() {
     container.querySelectorAll(".hist-delete-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const histId = btn.getAttribute("data-hist-id");
-        await fetch(`/v1/history/${histId}`, { method: "DELETE" });
+        await fetch(`${API_BASE}/v1/history/${histId}`, { method: "DELETE" });
         await loadHistory();
       });
     });
