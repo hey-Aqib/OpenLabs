@@ -1,5 +1,26 @@
 [
   {
+    "history_item_id": "hist_bcea600396f54a9c",
+    "request_id": "req_cdf5cb961e02",
+    "voice_id": "21m00Tcm4TlvDq8ikWAM",
+    "model_id": "openlabs_multilingual_v2",
+    "voice_name": "Rachel",
+    "voice_category": "premade",
+    "text": "Test prompt for OpenLabs Gradio space",
+    "date_unix": 1793303087,
+    "character_count_change_from": 100000,
+    "character_count_change_to": 99963,
+    "content_type": "audio/mpeg",
+    "state": "created",
+    "settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "style": 0.05,
+      "use_speaker_boost": true
+    },
+    "duration_seconds": 3.399
+  },
+  {
     "history_item_id": "hist_c1a4b0afe27a4725",
     "request_id": "req_61ddff56e796",
     "voice_id": "21m00Tcm4TlvDq8ikWAM",

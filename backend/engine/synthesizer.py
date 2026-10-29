@@ -110,6 +110,7 @@ def _synthesize_raw(text: str, gender: str = "female", rate_factor: float = 1.0)
             print(f"SAPI synthesis notice: {e}, falling back to espeak/pyttsx3")
             
     return _synthesize_raw_espeak(text, gender, rate_factor)
+def _synthesize_raw_sapi(text: str, gender: str = "female", rate_factor: float = 1.0) -> Tuple[np.ndarray, int]:
     """
     Thread-safe Windows SAPI5 synthesizer invocation.
     Generates pristine 22.05kHz PCM audio.
