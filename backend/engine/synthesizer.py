@@ -7,12 +7,19 @@ import io
 import re
 import tempfile
 import asyncio
+import subprocess
+import shutil
 from pathlib import Path
 from typing import Tuple, AsyncGenerator, Optional, Dict, Any, List
 import numpy as np
 import soundfile as sf
-import pythoncom
-import win32com.client
+
+try:
+    import pythoncom
+    import win32com.client
+    HAS_WIN32COM = True
+except ImportError:
+    HAS_WIN32COM = False
 
 from backend.models.schemas import VoiceSettings, Alignment
 from backend.models.voice_catalog import get_voice_by_id
@@ -60,7 +67,49 @@ def split_into_streaming_chunks(text: str, max_chars: int = 150) -> List[str]:
         
     return chunks or [cleaned]
 
-def _synthesize_raw_sapi(text: str, gender: str = "female", rate_factor: float = 1.0) -> Tuple[np.ndarray, int]:
+def _synthesize_raw_espeak(text: str, gender: str = "female", rate_factor: float = 1.0) -> Tuple[np.ndarray, int]:
+    """
+    Linux / Docker synthesizer invocation using espeak-ng / espeak or pyttsx3.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+        temp_path = f.name
+    try:
+        espeak_bin = shutil.which("espeak-ng") or shutil.which("espeak")
+        if espeak_bin:
+            voice_code = "en-us+f3" if gender.lower() == "female" else "en-us+m3"
+            speed = int(160 * rate_factor)
+            subprocess.run([espeak_bin, "-v", voice_code, "-s", str(speed), "-w", temp_path, text], check=True)
+            data, sr = sf.read(temp_path)
+            if len(data.shape) > 1:
+                data = np.mean(data, axis=1)
+            return data.astype(np.float32), sr
+        else:
+            import pyttsx3
+            engine = pyttsx3.init()
+            engine.save_to_file(text, temp_path)
+            engine.runAndWait()
+            data, sr = sf.read(temp_path)
+            if len(data.shape) > 1:
+                data = np.mean(data, axis=1)
+            return data.astype(np.float32), sr
+    finally:
+        if Path(temp_path).exists():
+            try:
+                Path(temp_path).unlink()
+            except Exception:
+                pass
+
+def _synthesize_raw(text: str, gender: str = "female", rate_factor: float = 1.0) -> Tuple[np.ndarray, int]:
+    """
+    Cross-platform raw speech synthesis selector.
+    """
+    if HAS_WIN32COM:
+        try:
+            return _synthesize_raw_sapi(text, gender, rate_factor)
+        except Exception as e:
+            print(f"SAPI synthesis notice: {e}, falling back to espeak/pyttsx3")
+            
+    return _synthesize_raw_espeak(text, gender, rate_factor)
     """
     Thread-safe Windows SAPI5 synthesizer invocation.
     Generates pristine 22.05kHz PCM audio.
@@ -181,8 +230,8 @@ class SpeechSynthesizer:
             settings_dict = voice_profile.get("settings", {})
             voice_settings = VoiceSettings(**settings_dict) if settings_dict else VoiceSettings()
             
-        # 2. Raw speech synthesis
-        raw_audio, sr = _synthesize_raw_sapi(cleaned_text, gender=gender, rate_factor=rate_factor)
+        # 2. Raw speech synthesis (Windows SAPI or Linux/Docker espeak-ng)
+        raw_audio, sr = _synthesize_raw(cleaned_text, gender=gender, rate_factor=rate_factor)
         
         # 3. Apply Acoustic DSP Pipeline
         processed_audio = apply_dsp_chain(

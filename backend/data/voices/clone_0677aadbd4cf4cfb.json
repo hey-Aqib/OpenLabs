@@ -1,0 +1,30 @@
+{
+  "voice_id": "clone_0677aadbd4cf4cfb",
+  "name": "Test Cloned Speaker",
+  "category": "cloned",
+  "description": "Unit test synthetic clone",
+  "preview_url": "/v1/voices/clone_0677aadbd4cf4cfb/preview",
+  "labels": {
+    "accent": "custom",
+    "gender": "male",
+    "age": "middle-aged",
+    "use_case": "cloned",
+    "tone": "140Hz"
+  },
+  "settings": {
+    "stability": 0.55,
+    "similarity_boost": 0.85,
+    "style": 0.1,
+    "use_speaker_boost": true
+  },
+  "acoustic_params": {
+    "gender": "male",
+    "f0_hz": 140.4,
+    "pitch_shift_semitones": -3.81,
+    "formant_shift": 0.85,
+    "presence_frequency": 3102.0,
+    "warmth_boost_db": 2.5,
+    "speaking_rate": 1.0
+  },
+  "sample_file": "clone_0677aadbd4cf4cfb.wav"
+}
