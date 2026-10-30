@@ -23,9 +23,86 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
-import { Voice, PREMADE_VOICES } from "@/lib/voices";
-import { AVAILABLE_MODELS, Model } from "@/lib/models";
-import { Alignment, WordTimestamp, extractWordTimestamps } from "@/lib/alignment";
+
+interface Voice {
+  voice_id: string;
+  name: string;
+  category: string;
+  description?: string;
+  labels: {
+    accent?: string;
+    gender?: string;
+    age?: string;
+    use_case?: string;
+  };
+}
+
+interface Model {
+  model_id: string;
+  name: string;
+  description: string;
+}
+
+interface Alignment {
+  characters: string[];
+  character_start_times_seconds: number[];
+  character_end_times_seconds: number[];
+}
+
+interface WordTimestamp {
+  word: string;
+  start: number;
+  end: number;
+}
+
+const PREMADE_VOICES: Voice[] = [
+  { voice_id: "21m00Tcm4TlvDq8ikWAM", name: "Rachel", category: "premade", labels: { gender: "female", accent: "american" }, description: "Calm, natural female voice with warm mid-range presence." },
+  { voice_id: "AZnzlk1XvdvUeBnXmlld", name: "Domi", category: "premade", labels: { gender: "female", accent: "american" }, description: "Strong, authentic female voice with crisp articulation." },
+  { voice_id: "EXAVITQu4vr4xnSDxMaL", name: "Bella", category: "premade", labels: { gender: "female", accent: "american" }, description: "Gentle, pleasant female voice with soft breathiness." },
+  { voice_id: "ErXwobaYiN019PkySvjV", name: "Antoni", category: "premade", labels: { gender: "male", accent: "american" }, description: "Well-rounded, versatile male voice with clear diction." },
+  { voice_id: "MF3mGyEYCl7XYWbV9V6O", name: "Josh", category: "premade", labels: { gender: "male", accent: "american" }, description: "Deep, soothing male voice with rich lower-chest resonance." },
+  { voice_id: "VR6AewLTigWG4xSOukaG", name: "Arnold", category: "premade", labels: { gender: "male", accent: "american" }, description: "Authoritative, crisp male voice with heavy presence." },
+  { voice_id: "pNInz6obpgDQGcFmaJgB", name: "Adam", category: "premade", labels: { gender: "male", accent: "american" }, description: "Deep, resonant male voice with broadcast radio clarity." },
+  { voice_id: "yoZ06aMxZJJ28mfd3POQ", name: "Sam", category: "premade", labels: { gender: "male", accent: "american" }, description: "Dynamic, fast-paced male voice with youthful energy." },
+  { voice_id: "piTKgcLEGmPE4e6mEKli", name: "Nicole", category: "premade", labels: { gender: "female", accent: "american" }, description: "Intimate, whispered female tone for storytelling." },
+  { voice_id: "JBFqnCBsd6RMkjVDRZzb", name: "George", category: "premade", labels: { gender: "male", accent: "british" }, description: "Warm, British storytelling cadence with rich gravitas." }
+];
+
+const AVAILABLE_MODELS: Model[] = [
+  { model_id: "openlabs_multilingual_v2", name: "OpenLabs Multilingual v2", description: "Flagship multilingual model with rich emotional prosody." },
+  { model_id: "openlabs_flash_v2_5", name: "OpenLabs Flash v2.5", description: "Ultra-low latency streaming model." },
+  { model_id: "openlabs_turbo_v2", name: "OpenLabs Turbo v2", description: "High-throughput neural engine." },
+  { model_id: "openlabs_neural_v1", name: "OpenLabs Neural v1", description: "Direct local acoustic synthesis engine." }
+];
+
+function extractWordTimestamps(alignment: any): WordTimestamp[] {
+  if (!alignment || !alignment.characters) return [];
+  const words: WordTimestamp[] = [];
+  let currentWord = "";
+  let wordStart = 0;
+  let wordEnd = 0;
+
+  for (let i = 0; i < alignment.characters.length; i++) {
+    const char = alignment.characters[i];
+    const start = alignment.character_start_times_seconds[i];
+    const end = alignment.character_end_times_seconds[i];
+
+    if (/\s|[.,!?;:]/.test(char)) {
+      if (currentWord.trim()) {
+        words.push({ word: currentWord.trim(), start: wordStart, end: wordEnd });
+        currentWord = "";
+      }
+    } else {
+      if (!currentWord) wordStart = start;
+      currentWord += char;
+      wordEnd = end;
+    }
+  }
+  if (currentWord.trim()) {
+    words.push({ word: currentWord.trim(), start: wordStart, end: wordEnd });
+  }
+  return words;
+}
 
 export default function OpenLabsStudio() {
   // Navigation
@@ -84,7 +161,7 @@ export default function OpenLabsStudio() {
 
   const fetchVoices = async () => {
     try {
-      const res = await fetch("/api/v1/voices");
+      const res = await fetch("/v1/voices");
       if (res.ok) {
         const data = await res.json();
         if (data.voices && data.voices.length > 0) {
@@ -98,7 +175,7 @@ export default function OpenLabsStudio() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("/api/v1/history");
+      const res = await fetch("/v1/history");
       if (res.ok) {
         const data = await res.json();
         if (data.history) {
@@ -118,7 +195,7 @@ export default function OpenLabsStudio() {
 
     const startTime = performance.now();
     try {
-      const res = await fetch(`/api/v1/text-to-speech/${selectedVoiceId}/with-timestamps`, {
+      const res = await fetch(`/v1/text-to-speech/${selectedVoiceId}/with-timestamps`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -300,7 +377,7 @@ export default function OpenLabsStudio() {
         formData.append("files", recordedBlob, "microphone_sample.wav");
       }
 
-      const res = await fetch("/api/v1/voices/add", {
+      const res = await fetch("/v1/voices/add", {
         method: "POST",
         body: formData,
       });
@@ -1042,3 +1119,4 @@ print("Speech saved to speech.mp3!")`}
     </main>
   );
 }
+

@@ -29,12 +29,9 @@ from backend.engine.history_manager import (
     save_history_record, get_history_items, get_history_audio_path, delete_history_record
 )
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_DIR = BASE_DIR / "frontend"
-
 app = FastAPI(
-    title="OpenLabs - Speech Engine & Studio",
-    description="High-fidelity voice synthesis & cloning engine.",
+    title="OpenLabs - Python Speech Engine & Studio",
+    description="High-fidelity voice synthesis & cloning engine in Python FastAPI.",
     version="2.0.0"
 )
 
@@ -47,21 +44,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Explicit static file route handlers
-@app.get("/static/css/style.css")
-async def serve_css():
-    return FileResponse(str(FRONTEND_DIR / "css" / "style.css"), media_type="text/css")
-
-@app.get("/static/js/app.js")
-async def serve_js():
-    return FileResponse(str(FRONTEND_DIR / "js" / "app.js"), media_type="application/javascript")
-
-# Mount frontend static files fallback
-app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
-
-@app.get("/", include_in_schema=False)
-async def serve_index():
-    return FileResponse(str(FRONTEND_DIR / "index.html"))
+@app.get("/api/health", tags=["Health"])
+async def health_check():
+    return {
+        "status": "healthy",
+        "service": "OpenLabs Python FastAPI Backend",
+        "version": "2.0.0"
+    }
 
 # ==========================================
 # 1. MODELS ENDPOINT (/v1/models)
