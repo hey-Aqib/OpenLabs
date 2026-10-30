@@ -21,10 +21,10 @@ try:
 except ImportError:
     HAS_WIN32COM = False
 
-from backend.models.schemas import VoiceSettings, Alignment
-from backend.models.voice_catalog import get_voice_by_id
-from backend.engine.dsp import apply_dsp_chain
-from backend.engine.alignment import generate_alignment
+from api.models.schemas import VoiceSettings, Alignment
+from api.models.voice_catalog import get_voice_by_id
+from api.engine.dsp import apply_dsp_chain
+from api.engine.alignment import generate_alignment
 
 # Supported output formats
 OUTPUT_FORMATS = {

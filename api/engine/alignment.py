@@ -3,7 +3,7 @@ Speech Alignment & Word-Level Timestamp Generator
 Generates character-level and word-level alignment data structures for speech synthesis.
 """
 from typing import Dict, List, Any
-from backend.models.schemas import Alignment
+from api.models.schemas import Alignment
 
 VOWELS = set("aeiouyAEIOUY")
 PLOSIVES = set("ptkbdgPTKBDG")

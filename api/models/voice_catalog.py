@@ -6,7 +6,7 @@ import os
 import json
 from pathlib import Path
 from typing import List, Dict, Optional
-from backend.models.schemas import Voice, VoiceSettings
+from api.models.schemas import Voice, VoiceSettings
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "voices"
 DATA_DIR.mkdir(parents=True, exist_ok=True)

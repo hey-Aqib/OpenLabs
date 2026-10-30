@@ -21,11 +21,11 @@ htmlcov/
 *.onnx
 
 # Dynamic audio files in history and temp
-backend/data/history/*.mp3
-backend/data/history/*.wav
-backend/data/voices/*.wav
-backend/data/voices/*.mp3
-backend/data/voices/*.ogg
+api/data/history/*.mp3
+api/data/history/*.wav
+api/data/voices/*.wav
+api/data/voices/*.mp3
+api/data/voices/*.ogg
 
 # Node & Next.js
 node_modules/

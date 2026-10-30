@@ -7,7 +7,7 @@ import uuid
 import time
 from pathlib import Path
 from typing import List, Optional, Dict, Any
-from backend.models.schemas import HistoryItem, VoiceSettings
+from api.models.schemas import HistoryItem, VoiceSettings
 
 HISTORY_DIR = Path(__file__).resolve().parent.parent / "data" / "history"
 HISTORY_DIR.mkdir(parents=True, exist_ok=True)

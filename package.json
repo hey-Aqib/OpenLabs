@@ -5,7 +5,7 @@
   "description": "OpenLabs - High-Fidelity Neural Speech Synthesis, Voice Cloning & Acoustic DSP Workstation",
   "scripts": {
     "dev": "next dev",
-    "fastapi-dev": "uvicorn backend.app:app --reload --port 8000",
+    "fastapi-dev": "uvicorn api.index:app --reload --port 8000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

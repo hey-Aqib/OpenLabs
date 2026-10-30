@@ -11,7 +11,7 @@ import scipy.signal as signal
 import soundfile as sf
 from pathlib import Path
 from typing import Dict, Any, Tuple, Optional
-from backend.models.voice_catalog import save_custom_voice
+from api.models.voice_catalog import save_custom_voice
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "voices"
 DATA_DIR.mkdir(parents=True, exist_ok=True)

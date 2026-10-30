@@ -1,8 +1,8 @@
-# OpenLabs — Neural Voice Synthesis & Cloning Platform
+# OpenLabs — Full-Stack Neural Voice Synthesis & Cloning Workstation
 
 OpenLabs is an independent, full-stack voice generation platform and developer API providing human-like prosody, zero-shot instant voice cloning, real-time waveform visualizers, and low-latency audio streaming.
 
-Built with **Next.js (React + Tailwind CSS) Frontend** and a **Pure Python FastAPI Backend**, structured for **1-Click Vercel Deployment** with zero external backend hosting required.
+Built as a **unified Full-Stack Next.js project with an integrated Python FastAPI backend (`api/`)**, ready for **1-Click Vercel Deployment** with zero external backend hosting required.
 
 ---
 
@@ -10,9 +10,8 @@ Built with **Next.js (React + Tailwind CSS) Frontend** and a **Pure Python FastA
 
 | Feature | OpenLabs Engine Capability |
 | :--- | :--- |
-| **Python FastAPI Backend** | Pure Python engine (`backend/app.py` & `api/index.py`) running as Serverless Functions on Vercel |
-| **Next.js Studio Frontend** | Modern Obsidian Dark interface with real-time waveform visualizer canvas & glowing controls |
-| **1-Click Vercel Deployment** | Single repository containing both Next.js frontend and Python backend — deploy directly to Vercel |
+| **Unified Full-Stack Architecture** | Next.js Studio frontend + integrated Python FastAPI backend (`api/`) |
+| **1-Click Vercel Deployment** | Zero separate backend folders; Vercel compiles Next.js and runs `api/index.py` as Serverless Functions |
 | **Acoustic Models** | `openlabs_multilingual_v2`, `openlabs_flash_v2_5`, `openlabs_turbo_v2`, `openlabs_neural_v1` |
 | **Premade Voices** | Curated catalog: Rachel, Domi, Bella, Antoni, Josh, Arnold, Adam, Sam, Nicole, George |
 | **Stability (0.0 - 1.0)** | Micro-jitter & prosodic variance vs. monotonic RMS envelope flattening |
@@ -25,36 +24,25 @@ Built with **Next.js (React + Tailwind CSS) Frontend** and a **Pure Python FastA
 
 ---
 
-## 📁 Clean Project Architecture
+## 📁 Clean Full-Stack Next.js Architecture
 
 ```
 OpenLabs/
-├── api/
-│   └── index.py               # Vercel Serverless Python entrypoint (exposes FastAPI app)
-├── backend/                   # Pure Python FastAPI backend & DSP engine
-│   ├── app.py                 # FastAPI application & v1 REST routes
-│   ├── engine/
-│   │   ├── synthesizer.py     # Speech synthesis coordinator with DSP & cloud/acoustic fallback
-│   │   ├── dsp.py             # 4-parameter acoustic DSP pipeline
-│   │   ├── voice_cloner.py    # Zero-shot voice profiling & instant cloner
-│   │   ├── alignment.py       # Character & word timestamp alignment generator
-│   │   └── history_manager.py # Generation history & audio persistence
-│   ├── models/
-│   │   ├── schemas.py         # Pydantic schemas for public API
-│   │   └── voice_catalog.py   # Voice profiles catalog & custom voice storage
-│   └── data/
-│       ├── voices/            # Persisted custom cloned voices (.json)
-│       └── history/           # Persisted generation records (.json)
-├── src/
+├── api/                       # Integrated Python FastAPI Backend (Vercel Serverless)
+│   ├── index.py               # FastAPI application & REST route definitions
+│   ├── engine/                # Synthesizer, 4-param DSP pipeline, cloner, alignment, history
+│   ├── models/                # Pydantic schemas & voice catalog
+│   └── data/                  # Cloned voice profiles & history records
+├── src/                       # Next.js Studio Frontend
 │   └── app/
 │       ├── layout.tsx         # Root layout with Obsidian Dark theme & metadata
 │       ├── globals.css        # Tailwind CSS + custom glowing sliders & karaoke styles
 │       └── page.tsx           # Obsidian Dark Studio UI (Synthesis, Cloning, Library, History, API)
 ├── vercel.json                # Vercel Serverless routing (/v1/* -> /api/index.py)
-├── next.config.mjs            # Next.js config with development & production rewrites
+├── next.config.mjs            # Next.js rewrites configuration
 ├── tailwind.config.ts         # Tailwind CSS configuration
 ├── tsconfig.json              # TypeScript configuration
-├── package.json               # Node.js dependencies
+├── package.json               # Node.js dependencies & scripts
 └── requirements.txt           # Python backend dependencies
 ```
 
@@ -72,9 +60,10 @@ pip install -r requirements.txt
 ```
 
 ### 2. Run Locally
-- **Start Python Backend:**
+- **Start Integrated Python Backend:**
   ```bash
-  uvicorn backend.app:app --reload --port 8000
+  npm run fastapi-dev
+  # or: uvicorn api.index:app --reload --port 8000
   ```
 - **Start Next.js Frontend:**
   ```bash
@@ -86,13 +75,13 @@ Open [http://localhost:3000](http://localhost:3000) to open the Studio.
 
 ## ☁️ Deploy to Vercel (1-Click Deployment)
 
-Because Vercel natively supports Next.js frontend with Python Serverless Functions in `api/`:
+Because Vercel natively supports Next.js with Python Serverless Functions in `api/`:
 
 1. Push this repository to GitHub.
 2. Go to [Vercel](https://vercel.com) $\to$ **Add New Project** $\to$ Import your GitHub repository.
 3. Framework Preset will be automatically detected as **Next.js**.
 4. Click **Deploy**!
-5. Vercel automatically builds the Next.js frontend and compiles the Python backend (`api/index.py`). Both frontend and backend will be live on your Vercel URL with zero separate infrastructure!
+5. Vercel automatically deploys both your Next.js Studio and the Python FastAPI backend on the same URL!
 
 ---
 

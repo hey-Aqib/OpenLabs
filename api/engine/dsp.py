@@ -10,7 +10,7 @@ Applies real-time voice settings:
 import numpy as np
 import scipy.signal as signal
 from typing import Optional, Dict
-from backend.models.schemas import VoiceSettings
+from api.models.schemas import VoiceSettings
 
 def pitch_shift_audio(audio: np.ndarray, sr: int, n_semitones: float) -> np.ndarray:
     """
