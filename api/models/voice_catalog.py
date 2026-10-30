@@ -8,8 +8,14 @@ from pathlib import Path
 from typing import List, Dict, Optional
 from api.models.schemas import Voice, VoiceSettings
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "voices"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+import tempfile
+BASE_DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "voices"
+try:
+    BASE_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    DATA_DIR = BASE_DATA_DIR
+except OSError:
+    DATA_DIR = Path(tempfile.gettempdir()) / "openlabs" / "voices"
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Curated High-Fidelity Voice Profiles with mapped acoustic characteristics
 PREMADE_VOICES: List[Dict] = [

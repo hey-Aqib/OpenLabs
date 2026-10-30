@@ -221,10 +221,15 @@ def encode_audio_buffer(audio: np.ndarray, sr: int, output_format: str = "mp3_44
         sr = target_sr
         
     buf = io.BytesIO()
-    if target_subtype:
-        sf.write(buf, audio, sr, format=target_fmt, subtype=target_subtype)
-    else:
-        sf.write(buf, audio, sr, format=target_fmt)
+    try:
+        if target_subtype:
+            sf.write(buf, audio, sr, format=target_fmt, subtype=target_subtype)
+        else:
+            sf.write(buf, audio, sr, format=target_fmt)
+    except Exception:
+        buf = io.BytesIO()
+        sf.write(buf, audio, sr, format="WAV", subtype="PCM_16")
+        mime = "audio/wav"
         
     return buf.getvalue(), mime
 

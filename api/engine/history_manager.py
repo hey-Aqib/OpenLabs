@@ -9,8 +9,14 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from api.models.schemas import HistoryItem, VoiceSettings
 
-HISTORY_DIR = Path(__file__).resolve().parent.parent / "data" / "history"
-HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+import tempfile
+BASE_HISTORY_DIR = Path(__file__).resolve().parent.parent / "data" / "history"
+try:
+    BASE_HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+    HISTORY_DIR = BASE_HISTORY_DIR
+except OSError:
+    HISTORY_DIR = Path(tempfile.gettempdir()) / "openlabs" / "history"
+    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
 INDEX_FILE = HISTORY_DIR / "history_index.json"
 
 def _load_index() -> List[Dict]:
