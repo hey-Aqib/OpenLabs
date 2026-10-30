@@ -27,7 +27,15 @@ backend/data/voices/*.wav
 backend/data/voices/*.mp3
 backend/data/voices/*.ogg
 
-# OS generated
+# Node & Next.js
+node_modules/
+.next/
+out/
+build/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
 .DS_Store
 Thumbs.db
 

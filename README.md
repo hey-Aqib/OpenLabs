@@ -1,19 +1,8 @@
----
-title: OpenLabs
-emoji: 🎙️
-colorFrom: indigo
-colorTo: purple
-sdk: gradio
-app_file: app.py
-pinned: false
-license: apache-2.0
----
+# OpenLabs — Full-Stack Neural Voice Synthesis & Cloning Platform
 
-# OpenLabs — High-Fidelity Voice Synthesis & Cloning Engine
+OpenLabs is an independent, full-stack voice generation platform and developer API providing human-like prosody, zero-shot instant voice cloning, real-time waveform visualizers, and low-latency audio streaming.
 
-OpenLabs is an independent, full-stack voice generation platform and developer API providing human-like prosody, zero-shot instant voice cloning, and low-latency audio streaming.
-
-Built with an open-source audio DSP pipeline, real-time waveform visualizers, and full REST & WebSocket streaming support.
+Built with **Next.js (App Router), TypeScript, Tailwind CSS, and Node.js Web APIs**, it runs as a unified, 100% self-contained full-stack application ready for **1-Click Vercel Deployment** with zero separate backend infrastructure needed.
 
 ---
 
@@ -21,17 +10,18 @@ Built with an open-source audio DSP pipeline, real-time waveform visualizers, an
 
 | Feature | OpenLabs Engine Capability |
 | :--- | :--- |
+| **Full-Stack Architecture** | Unified Next.js application with React frontend and Serverless API routes |
+| **Vercel Ready** | Deploy directly to Vercel in 1 click with zero configuration or external backend |
 | **Acoustic Models** | `openlabs_multilingual_v2`, `openlabs_flash_v2_5`, `openlabs_turbo_v2`, `openlabs_neural_v1` |
-| **Premade Voices** | Curated catalog: Rachel, Adam, Antoni, Josh, Bella, Sam, Nicole, George, Arnold |
-| **Stability (0.0 - 1.0)** | Micro-jitter & prosodic variance vs. monotonic RMS envelope flattening filter |
-| **Similarity / Clarity (0.0 - 1.0)** | Formant tracking & harmonic frequency exciter (2.5kHz - 7kHz) |
-| **Style Exaggeration (0.0 - 1.0)** | Non-linear dynamic expansion ($y = \text{sign}(x) \cdot |x|^{(1.0 - 0.25 \times \text{style})}$) |
+| **Premade Voices** | Curated catalog: Rachel, Domi, Bella, Antoni, Josh, Arnold, Adam, Sam, Nicole, George |
+| **Stability (0.0 - 1.0)** | Micro-jitter & prosodic variance vs. monotonic RMS envelope flattening |
+| **Clarity / Similarity (0.0 - 1.0)** | Formant tracking & harmonic frequency exciter (2.5kHz - 7kHz) |
+| **Style Exaggeration (0.0 - 1.0)** | Non-linear dynamic expansion for dramatic emotional delivery |
 | **Speaker Boost (bool)** | Multi-band vocal presence shelf (+3.6dB @ 3.3kHz) & soft-knee broadcast limiter |
-| **Instant Voice Cloning** | Upload 1-3 audio files or record via browser microphone $\to$ zero-shot speaker adaptation |
-| **Voice Design** | Parametric synthetic voice creation from Gender, Age, Accent, and Accent Strength |
-| **Audio Streaming** | HTTP Chunked Transfer & WebSocket bidirectional streams (`/stream-input`) |
-| **Word Alignment** | Millisecond-accurate character & word timestamps with live karaoke highlighting |
-| **API Architecture** | Clean REST API (`/v1/text-to-speech`, `/v1/voices`, `/v1/models`, `/v1/history`) |
+| **Instant Voice Cloning** | Upload audio files or record directly via browser microphone $\to$ zero-shot speaker adaptation |
+| **Live Karaoke Sync** | Millisecond-accurate character & word timestamps with active word highlighting |
+| **Waveform Canvas** | Real-time oscilloscope visualizer synced with audio playback |
+| **REST API** | Standard endpoints (`/v1/text-to-speech`, `/v1/voices`, `/v1/models`, `/v1/history`) |
 
 ---
 
@@ -39,100 +29,108 @@ Built with an open-source audio DSP pipeline, real-time waveform visualizers, an
 
 ```
 OpenLabs/
-├── backend/
-│   ├── app.py                 # FastAPI application & v1 routes
-│   ├── engine/
-│   │   ├── synthesizer.py     # Speech synthesis coordinator & format encoders
-│   │   ├── dsp.py             # 4-parameter acoustic DSP pipeline
-│   │   ├── voice_cloner.py    # Zero-shot voice profiling & instant cloner
-│   │   ├── alignment.py       # Character & word timestamp alignment generator
-│   │   └── history_manager.py # Generation history & audio persistence
-│   ├── models/
-│   │   ├── schemas.py         # Pydantic schemas for public API
-│   │   └── voice_catalog.py   # Voice profiles catalog & custom voice storage
-│   └── data/
-│       ├── voices/            # Persisted custom cloned voices (.json)
-│       └── history/           # Persisted generation records & audio files (.mp3)
-├── frontend/
-│   ├── index.html             # Studio UI (Playground, Voice Lab, Library, History, API)
-│   ├── css/
-│   │   └── style.css          # Dark-mode styling, glowing sliders, custom scrollbars
-│   └── js/
-│       └── app.js             # State manager, canvas waveform, mic recorder & karaoke
-├── tests/
-│   └── test_api_parity.py     # End-to-end integration test suite
-├── requirements.txt           # Python package dependencies
-├── run.py                     # One-click startup script
-└── README.md
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx         # Root layout with Obsidian Dark theme & metadata
+│   │   ├── globals.css        # Tailwind CSS + custom glowing sliders & karaoke styles
+│   │   ├── page.tsx           # Obsidian Dark Studio UI (Synthesis, Cloning, Library, History, API)
+│   │   └── api/
+│   │       └── v1/
+│   │           ├── voices/
+│   │           │   ├── route.ts         # GET /v1/voices (Voice catalog)
+│   │           │   └── add/route.ts     # POST /v1/voices/add (Instant Voice Cloning)
+│   │           ├── models/route.ts      # GET /v1/models (Acoustic models)
+│   │           ├── text-to-speech/
+│   │           │   └── [voice_id]/
+│   │           │       ├── route.ts              # POST /v1/text-to-speech/{id} (MP3 audio stream)
+│   │           │       └── with-timestamps/route.ts # POST /v1/text-to-speech/{id}/with-timestamps (JSON + timestamps)
+│   │           └── history/route.ts     # GET /v1/history (Generation logs)
+│   └── lib/
+│       ├── voices.ts          # Curated voice catalog & acoustic parameter store
+│       ├── models.ts          # Acoustic model definitions
+│       ├── synthesizer.ts     # Speech synthesis orchestrator with multi-tier fallback
+│       ├── alignment.ts       # Character & word timestamp alignment generator
+│       ├── cloner.ts          # Instant voice cloning feature extractor
+│       └── history.ts         # In-memory history persistence
+├── next.config.mjs            # Next.js config with /v1/* rewrites to /api/v1/*
+├── tailwind.config.ts         # Tailwind CSS configuration
+├── tsconfig.json              # TypeScript configuration
+├── package.json               # Node.js dependencies
+└── backend/                   # Python reference engine & DSP implementations
 ```
 
 ---
 
-## 🛠️ Quick Start & Setup
+## ⚡ Quickstart (Local Development)
 
-### 1. Requirements
-- Python 3.10+ (tested on Python 3.13)
-- Windows / Linux / macOS
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-### 2. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+2. **Run development server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 3. Run the Studio Server
-```bash
-python run.py --open
-```
-
-Open your browser to:
-- **Studio Interface**: [http://localhost:8000/](http://localhost:8000/)
-- **Interactive Swagger API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-
----
-
-## 🧪 Running Automated Tests
-
-Run the full end-to-end test suite:
-```bash
-pytest tests/test_api_parity.py -v
-```
-
-All 7 integration tests verify:
-1. `GET /v1/models` — model discovery
-2. `GET /v1/voices` — premade and custom voice retrieval
-3. `POST /v1/text-to-speech/{voice_id}` — standard audio generation
-4. `POST /v1/text-to-speech/{voice_id}/with-timestamps` — alignment & base64 audio
-5. `POST /v1/text-to-speech/{voice_id}/stream` — chunked audio streaming
-6. `POST /v1/voices/add` — instant voice cloning from audio file
-7. `GET /v1/history` & audio playback — history logging and retrieval
+3. **Build for production:**
+   ```bash
+   npm run build
+   npm run start
+   ```
 
 ---
 
-## 🚀 How to Deploy OpenLabs
+## ☁️ Deploy to Vercel (1-Click)
 
-### Option 1: Docker (Recommended for VPS / Cloud)
-Create a `Dockerfile`:
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-RUN apt-get update && apt-get install -y ffmpeg libsndfile1 espeak-ng && rm -rf /var/lib/apt/lists/*
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE 8000
-CMD ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-Build & run:
+Because OpenLabs is now a complete full-stack Next.js project, you do **not** need a separate Python backend deployment:
+
+1. Push this repository to GitHub.
+2. Go to [Vercel](https://vercel.com) $\to$ **Add New Project** $\to$ Import your GitHub repository.
+3. Framework Preset will be automatically detected as **Next.js**.
+4. Click **Deploy**!
+5. Your Studio UI and all `/v1/...` REST API routes will be live instantly on your Vercel URL.
+
+---
+
+## 💻 Developer API Reference
+
+### cURL
+
 ```bash
-docker build -t openlabs .
-docker run -p 8000:8000 openlabs
+curl -X POST "https://your-domain.vercel.app/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello world from OpenLabs", "model_id": "openlabs_multilingual_v2"}' \
+  --output speech.mp3
 ```
 
-### Option 2: Render / Railway / Fly.io
-1. Connect your GitHub repository (`https://github.com/hey-Aqib/OpenLabs.git`).
-2. Set Build Command: `pip install -r requirements.txt`
-3. Set Start Command: `uvicorn backend.app:app --host 0.0.0.0 --port $PORT`
+### Python SDK
 
-### Option 3: Hugging Face Spaces (Docker Space)
-1. Create a new Space with SDK: **Docker**.
-2. Push your repo. Hugging Face will automatically build and host the app with free compute.
+```python
+import requests
+
+url = "https://your-domain.vercel.app/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM"
+payload = {
+    "text": "Hello from OpenLabs neural voice platform!",
+    "model_id": "openlabs_multilingual_v2",
+    "voice_settings": {
+        "stability": 0.50,
+        "similarity_boost": 0.75,
+        "style": 0.05,
+        "use_speaker_boost": True
+    }
+}
+
+response = requests.post(url, json=payload)
+with open("speech.mp3", "wb") as f:
+    f.write(response.content)
+
+print("Speech saved to speech.mp3!")
+```
+
+---
+
+## 📄 License
+
+Apache-2.0. Open-source, independent neural voice synthesis platform.
